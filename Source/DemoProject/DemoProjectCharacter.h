@@ -164,6 +164,12 @@ public:
 		return bIsUnderWater;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	bool IsClimbing() const
+	{
+		return bIsClimbing;
+	}
+
 private:
 	/** True if receive user input */
 	bool bRecieveUserInput = true;

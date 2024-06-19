@@ -97,11 +97,26 @@ void ADemoProjectCharacter::TickClimb()
 		{
 			if (HitResult.Actor->Tags.Contains(FName("Landscape")))
 			{
-				SetActorLocation(HitResult.ImpactPoint + HitResult.Normal * 42);
+				SetActorLocation(HitResult.Location + HitResult.Normal * 5);
 				SetActorRotation(UKismetMathLibrary::FindLookAtRotation(HitResult.Normal, FVector::ZeroVector));
 
 				float WallDegree = abs(FMath::RadiansToDegrees((FMath::Acos(FVector::DotProduct(FVector::UpVector, HitResult.Normal)))));
-				if (WallDegree < 30 || WallDegree > 150) Climb();
+				if (WallDegree < 30)
+				{
+					FRotator NewRotator = GetActorRotation();
+					NewRotator.Pitch = 0;
+					SetActorRotation(NewRotator);
+					SetActorLocation(GetActorLocation() + GetActorUpVector() * 96 + GetActorForwardVector() * 30);
+					Climb();
+					/*if (!UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + GetActorUpVector() * 96, GetActorLocation() + GetActorUpVector() * 96 + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+					{
+						
+					}*/
+				}
+				else if (WallDegree > 150)
+				{
+					Climb();
+				}
 			}
 		}
 		else Climb();
@@ -299,7 +314,19 @@ void ADemoProjectCharacter::Jump()
 	if (!bRecieveUserInput) return;
 
 	if (GetCharacterMovement()->MovementMode == MOVE_Flying) {
-		GetCharacterMovement()->AddImpulse(FVector::UpVector * 500, true);
+		if (bIsClimbing)
+		{
+			GetCharacterMovement()->AddImpulse(GetActorUpVector() * 500, true);
+		}
+		else
+		{
+			GetCharacterMovement()->AddImpulse(FVector::UpVector * 500, true);
+		}
+		
+	}
+	else if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		Fly();
 	}
 	else {
 		Super::Jump();
@@ -359,16 +386,20 @@ void ADemoProjectCharacter::Climb()
 {
 	if (!bRecieveUserInput) return;
 
-	if (!bIsClimbing) {
-		GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;
-		bIsClimbing = true;
+	if (GetCharacterMovement()->MovementMode == MOVE_Walking && !bIsClimbing) {
+		FHitResult HitResult;
+		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+		{
+			GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;
+			bIsClimbing = true;
 
-		GetCharacterMovement()->bOrientRotationToMovement = false;
+			GetCharacterMovement()->bOrientRotationToMovement = false;
 
-		GetCharacterMovement()->MaxFlySpeed = 200;
-		GetCharacterMovement()->BrakingDecelerationFlying = 1000;
+			GetCharacterMovement()->MaxFlySpeed = 200;
+			GetCharacterMovement()->BrakingDecelerationFlying = 1000;
+		}
 	}
-	else
+	else if (GetCharacterMovement()->MovementMode == MOVE_Flying && bIsClimbing)
 	{
 		GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 		bIsClimbing = false;
