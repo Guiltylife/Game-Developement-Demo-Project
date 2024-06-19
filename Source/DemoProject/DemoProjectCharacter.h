@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PhysicsVolume.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "DemoProjectCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -26,6 +28,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void TickSwim();
+
+	void TickClimb();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -68,6 +72,9 @@ protected:
 
 	/** Called for Dive */
 	void Dive();
+
+	/** Called for Climb */
+	void Climb();
 
 	/** 
 	 * Called via input to turn at a given rate. 
@@ -148,7 +155,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetWaterHeight(float InWaterHeight)
 	{
-		UE_LOG(LogTemp, Log, TEXT("%f"), InWaterHeight);
 		WaterHeight = InWaterHeight;
 	}
 
@@ -159,7 +165,7 @@ public:
 	}
 
 private:
-	/** True if recieve user input */
+	/** True if receive user input */
 	bool bRecieveUserInput = true;
 
 	/** True if the character is running */
@@ -179,5 +185,8 @@ private:
 
 	/** True if the character is raising */
 	bool bIsRaising = false;
+
+	/** True if the character is climbing */
+	bool bIsClimbing = false;
 };
 

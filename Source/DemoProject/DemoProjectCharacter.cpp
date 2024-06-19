@@ -52,6 +52,8 @@ void ADemoProjectCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TickSwim();
+
+	TickClimb();
 }
 
 void ADemoProjectCharacter::TickSwim()
@@ -62,6 +64,7 @@ void ADemoProjectCharacter::TickSwim()
 		{
 			GetPawnPhysicsVolume()->bWaterVolume = true;
 			GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Swimming;
+			bIsRaising = true;
 		}
 		if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Swimming) {
 			if (bIsDiving) {
@@ -85,7 +88,27 @@ void ADemoProjectCharacter::TickSwim()
 	}
 }
 
-/** Move character to overwater */
+void ADemoProjectCharacter::TickClimb()
+{
+	if (bIsClimbing)
+	{
+		FHitResult HitResult;
+		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+		{
+			if (HitResult.Actor->Tags.Contains(FName("Landscape")))
+			{
+				SetActorLocation(HitResult.ImpactPoint + HitResult.Normal * 42);
+				SetActorRotation(UKismetMathLibrary::FindLookAtRotation(HitResult.Normal, FVector::ZeroVector));
+
+				float WallDegree = abs(FMath::RadiansToDegrees((FMath::Acos(FVector::DotProduct(FVector::UpVector, HitResult.Normal)))));
+				if (WallDegree < 30 || WallDegree > 150) Climb();
+			}
+		}
+		else Climb();
+	}
+}
+
+/** Move character to over water */
 void ADemoProjectCharacter::MoveToOverwater()
 {
 	if (GetActorLocation().Z < WaterHeight + OverwaterOffset)
@@ -153,6 +176,8 @@ void ADemoProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Fly", IE_Pressed, this, &ADemoProjectCharacter::Fly);
 
 	PlayerInputComponent->BindAction("Dive", IE_Pressed, this, &ADemoProjectCharacter::Dive);
+
+	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &ADemoProjectCharacter::Climb);
 }
 
 void ADemoProjectCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
@@ -184,9 +209,9 @@ void ADemoProjectCharacter::MoveForward(float Value)
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
-		if (MovementMode == MOVE_Swimming)
+		if (MovementMode == MOVE_Swimming) // Swimming
 		{
-			if (bIsUnderWater)
+			if (bIsUnderWater) // underwater
 			{
 				// find out which way is forward
 				const FRotator Rotation = Controller->GetControlRotation();
@@ -199,7 +224,7 @@ void ADemoProjectCharacter::MoveForward(float Value)
 
 				SetActorRotation(FMath::Lerp(GetActorRotation(), Rotation, 0.01f));
 			}
-			else
+			else // over water
 			{
 				// find out which way is forward
 				const FRotator Rotation = Controller->GetControlRotation();
@@ -213,7 +238,7 @@ void ADemoProjectCharacter::MoveForward(float Value)
 			}
 			
 		}
-		else if (MovementMode == MOVE_Flying)
+		else if (MovementMode == MOVE_Flying && !bIsClimbing) // flying
 		{
 			// find out which way is forward
 			const FRotator Rotation = Controller->GetControlRotation();
@@ -223,6 +248,10 @@ void ADemoProjectCharacter::MoveForward(float Value)
 
 			if (!bIsRunning) Value /= 2;
 			AddMovementInput(Direction, Value);
+		}
+		else if (MovementMode == MOVE_Flying && bIsClimbing) // climbing
+		{
+			AddMovementInput(GetActorUpVector(), Value);
 		}
 		else
 		{
@@ -245,15 +274,23 @@ void ADemoProjectCharacter::MoveRight(float Value)
 
 	if ( (Controller != nullptr) && (Value != 0.0f) )
 	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
+		if (MovementMode == MOVE_Flying && bIsClimbing) // climbing
+		{
+			AddMovementInput(GetActorRightVector(), Value);
+		}
+		else
+		{
+			// find out which way is right
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get right vector 
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		if (!bIsRunning) Value /= 2;
-		AddMovementInput(Direction, Value);
+			if (!bIsRunning) Value /= 2;
+			AddMovementInput(Direction, Value);
+		}
 	}
 }
 
@@ -298,10 +335,12 @@ void ADemoProjectCharacter::Fly()
 	if (!bRecieveUserInput) return;
 
 	if (GetCharacterMovement()->MovementMode == MOVE_Flying) {
-		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	}
 	else {
 		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		bIsClimbing = false;
+
 		GetCharacterMovement()->AddImpulse(FVector::UpVector * 50, true);
 	}
 }
@@ -313,5 +352,34 @@ void ADemoProjectCharacter::Dive()
 	if (bIsInWater && !bIsUnderWater) {
 		bIsDiving = true;
 		bRecieveUserInput = false;
+	}
+}
+
+void ADemoProjectCharacter::Climb()
+{
+	if (!bRecieveUserInput) return;
+
+	if (!bIsClimbing) {
+		GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;
+		bIsClimbing = true;
+
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+
+		GetCharacterMovement()->MaxFlySpeed = 200;
+		GetCharacterMovement()->BrakingDecelerationFlying = 1000;
+	}
+	else
+	{
+		GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
+		bIsClimbing = false;
+
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+
+		GetCharacterMovement()->MaxFlySpeed = 600;
+		GetCharacterMovement()->BrakingDecelerationFlying = 0;
+
+		FRotator NewRotator = GetActorRotation();
+		NewRotator.Pitch = 0;
+		SetActorRotation(NewRotator);
 	}
 }
