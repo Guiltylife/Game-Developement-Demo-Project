@@ -8,6 +8,7 @@
 #include "GameFramework/PhysicsVolume.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/TimeLineComponent.h"
 #include "DemoProjectCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -25,11 +26,15 @@ class ADemoProjectCharacter : public ACharacter
 public:
 	ADemoProjectCharacter();
 
+	virtual void BeginPlay();
+
 	virtual void Tick(float DeltaTime) override;
 
 	void TickSwim();
 
 	void TickClimb();
+
+	void TickClimbEnd();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -94,11 +99,19 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
-	/** Move character to overwater */
+	/** Move character to over water */
 	void MoveToOverwater();
 
 	/** Move character to underwater */
 	void MoveToUnderwater();
+
+	/** Call when climb end time line tick */
+	UFUNCTION()
+	void ClimbEndTickCallback();
+
+	/** Call when climb end time line finish */
+	UFUNCTION()
+	void ClimbEndFinishCallback();
 
 protected:
 	// APawn interface
@@ -170,6 +183,12 @@ public:
 		return bIsClimbing;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	bool IsClimbingEdge() const
+	{
+		return bIsClimbEnding;
+	}
+
 private:
 	/** True if receive user input */
 	bool bRecieveUserInput = true;
@@ -194,5 +213,26 @@ private:
 
 	/** True if the character is climbing */
 	bool bIsClimbing = false;
+
+	/** True if the character is ending climb */
+	bool bIsClimbEnding = false;
+
+private:
+	FTimeline ClimbEndTimeLine;
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* ClimbEndCurve;
+
+	FOnTimelineFloatStatic OnClimbEndTickCallback;
+
+	FOnTimelineEventStatic OnClimbEndFinishCallback;
+
+	FVector ClimbEndLocationStart;
+
+	FVector ClimbEndLocationEnd;
+
+	FRotator ClimbEndRotatorStart;
+
+	FRotator ClimbEndRotatorEnd;
 };
 

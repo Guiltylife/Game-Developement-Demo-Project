@@ -47,9 +47,22 @@ ADemoProjectCharacter::ADemoProjectCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
+void ADemoProjectCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OnClimbEndTickCallback.BindUFunction(this, TEXT("ClimbEndTickCallback"));
+	ClimbEndTimeLine.AddInterpFloat(ClimbEndCurve, OnClimbEndTickCallback);
+
+	OnClimbEndFinishCallback.BindUFunction(this, TEXT("ClimbEndFinishCallback"));
+	ClimbEndTimeLine.SetTimelineFinishedFunc(OnClimbEndFinishCallback);
+}
+
 void ADemoProjectCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	ClimbEndTimeLine.TickTimeline(DeltaTime);
 
 	TickSwim();
 
@@ -90,10 +103,12 @@ void ADemoProjectCharacter::TickSwim()
 
 void ADemoProjectCharacter::TickClimb()
 {
-	if (bIsClimbing)
+	if (bIsClimbing && !bIsClimbEnding)
 	{
 		FHitResult HitResult;
-		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(),
+			GetActorLocation() + GetActorForwardVector() * 90, 30,
+			ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
 		{
 			if (HitResult.Actor->Tags.Contains(FName("Landscape")))
 			{
@@ -101,26 +116,33 @@ void ADemoProjectCharacter::TickClimb()
 				SetActorRotation(UKismetMathLibrary::FindLookAtRotation(HitResult.Normal, FVector::ZeroVector));
 
 				float WallDegree = abs(FMath::RadiansToDegrees((FMath::Acos(FVector::DotProduct(FVector::UpVector, HitResult.Normal)))));
-				if (WallDegree < 30)
+				if (WallDegree < 45)
 				{
-					FRotator NewRotator = GetActorRotation();
-					NewRotator.Pitch = 0;
-					SetActorRotation(NewRotator);
-					SetActorLocation(GetActorLocation() + GetActorUpVector() * 96 + GetActorForwardVector() * 30);
-					Climb();
-					/*if (!UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + GetActorUpVector() * 96, GetActorLocation() + GetActorUpVector() * 96 + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
-					{
-						
-					}*/
+					TickClimbEnd();
 				}
 				else if (WallDegree > 150)
 				{
 					Climb();
 				}
 			}
+			else Climb();
 		}
 		else Climb();
 	}
+}
+
+void ADemoProjectCharacter::TickClimbEnd()
+{
+	bRecieveUserInput = false;
+	bIsClimbEnding = true;
+
+	ClimbEndLocationStart = GetActorLocation();
+	ClimbEndLocationEnd = GetActorLocation() + GetActorUpVector() * 96;
+	ClimbEndRotatorStart = GetActorRotation();
+	ClimbEndRotatorEnd = GetActorRotation();
+	ClimbEndRotatorEnd.Pitch = 0;
+
+	ClimbEndTimeLine.PlayFromStart();
 }
 
 /** Move character to over water */
@@ -158,6 +180,23 @@ void ADemoProjectCharacter::MoveToUnderwater()
 		bRecieveUserInput = true;
 		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 	}
+}
+
+/** Call when climb end time line tick */
+void ADemoProjectCharacter::ClimbEndTickCallback()
+{
+	/*float FloatCurveValue = ClimbEndCurve->GetFloatValue(ClimbEndTimeLine.GetPlaybackPosition());
+	SetActorLocation(FMath::Lerp(ClimbEndLocationStart, ClimbEndLocationEnd, FloatCurveValue));
+	SetActorRotation(FMath::Lerp(ClimbEndRotatorStart, ClimbEndRotatorEnd, FloatCurveValue));*/
+}
+
+/** Call when climb end time line finish */
+void ADemoProjectCharacter::ClimbEndFinishCallback()
+{
+	bRecieveUserInput = true;
+	bIsClimbEnding = false;
+
+	Climb();
 }
 
 //////////////////////////////////////////////////////////////////////////
