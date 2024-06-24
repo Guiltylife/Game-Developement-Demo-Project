@@ -34,7 +34,7 @@ public:
 
 	void TickClimb();
 
-	void TickClimbEnd();
+	void TickClimbEdge();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -105,13 +105,13 @@ protected:
 	/** Move character to underwater */
 	void MoveToUnderwater();
 
-	/** Call when climb end time line tick */
+	/** Call when climb edge time line tick */
 	UFUNCTION()
-	void ClimbEndTickCallback();
+	void ClimbEdgeTickCallback();
 
-	/** Call when climb end time line finish */
+	/** Call when climb edge time line finish */
 	UFUNCTION()
-	void ClimbEndFinishCallback();
+	void ClimbEdgeFinishCallback();
 
 protected:
 	// APawn interface
@@ -186,7 +186,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsClimbingEdge() const
 	{
-		return bIsClimbEnding;
+		return bIsClimbingEdge;
 	}
 
 private:
@@ -214,25 +214,21 @@ private:
 	/** True if the character is climbing */
 	bool bIsClimbing = false;
 
-	/** True if the character is ending climb */
-	bool bIsClimbEnding = false;
+	/** True if the character is climbing edge */
+	bool bIsClimbingEdge = false;
 
 private:
-	FTimeline ClimbEndTimeLine;
+	FTimeline ClimbEdgeTimeLine;
 
 	UPROPERTY(EditAnywhere)
-	UCurveFloat* ClimbEndCurve;
+	UCurveFloat* ClimbEdgeCurve;
 
-	FOnTimelineFloatStatic OnClimbEndTickCallback;
+	FOnTimelineFloatStatic OnClimbEdgeTickCallback;
 
-	FOnTimelineEventStatic OnClimbEndFinishCallback;
+	FOnTimelineEventStatic OnClimbEdgeFinishCallback;
 
-	FVector ClimbEndLocationStart;
+	FRotator ClimbEdgeRotatorStart;
 
-	FVector ClimbEndLocationEnd;
-
-	FRotator ClimbEndRotatorStart;
-
-	FRotator ClimbEndRotatorEnd;
+	FRotator ClimbEdgeRotatorEnd;
 };
 
