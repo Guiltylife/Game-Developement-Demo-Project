@@ -189,6 +189,18 @@ public:
 		return bIsClimbingEdge;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	bool IsWalkIK() const
+	{
+		return GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking && GetVelocity().Size() < 400;
+	}
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsClimbIK() const
+	{
+		return bIsClimbing && !bIsClimbingEdge;
+	}
+
 private:
 	/** True if receive user input */
 	bool bRecieveUserInput = true;
