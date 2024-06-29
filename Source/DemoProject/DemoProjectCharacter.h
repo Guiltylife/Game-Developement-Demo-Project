@@ -198,7 +198,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsClimbIK() const
 	{
-		return bIsClimbing && !bIsClimbingEdge;
+		return bIsClimbing && !bIsClimbingEdge && GetVelocity().Size() < 100;
 	}
 
 private:
