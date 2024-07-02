@@ -98,6 +98,15 @@ void ADemoProjectCharacter::TickSwim()
 				GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 			}
 		}
+
+		if (GetVelocity().Size() > 10)
+		{
+			GetCapsuleComponent()->SetCapsuleRadius(120);
+		}
+		else
+		{
+			GetCapsuleComponent()->SetCapsuleRadius(38);
+		}
 	}
 }
 
@@ -137,7 +146,7 @@ void ADemoProjectCharacter::TickClimb()
 				}
 
 				if (UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(),
-					GetActorLocation() - GetActorUpVector() * 80 + GetActorForwardVector() * 20,
+					GetActorLocation() - GetActorUpVector() * 112,
 					ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
 				{
 					Climb();
@@ -294,7 +303,7 @@ void ADemoProjectCharacter::MoveForward(float Value)
 				if (!bIsRunning) Value /= 2;
 				AddMovementInput(Direction, Value);
 
-				SetActorRotation(FMath::Lerp(GetActorRotation(), Rotation, 0.01f));
+				SetActorRotation(FMath::Lerp(GetActorRotation(), Rotation, 0.1f));
 			}
 			else // over water
 			{
@@ -447,15 +456,18 @@ void ADemoProjectCharacter::Climb()
 		FHitResult HitResult;
 		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
 		{
-			GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;
-			bIsClimbing = true;
+			if (HitResult.Actor->ActorHasTag("Climbable")) {
+				GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;
+				bIsClimbing = true;
 
-			GetCharacterMovement()->bOrientRotationToMovement = false;
+				GetCharacterMovement()->bOrientRotationToMovement = false;
 
-			GetCharacterMovement()->MaxFlySpeed = 200;
-			GetCharacterMovement()->BrakingDecelerationFlying = 1000;
+				GetCharacterMovement()->MaxFlySpeed = 200;
+				GetCharacterMovement()->BrakingDecelerationFlying = 1000;
 
-			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				GetCapsuleComponent()->SetCapsuleHalfHeight(105);
+				GetMesh()->SetRelativeLocation(FVector(0, 0, -114));
+			}
 		}
 	}
 	else if (GetCharacterMovement()->MovementMode == MOVE_Flying && bIsClimbing)
@@ -468,7 +480,8 @@ void ADemoProjectCharacter::Climb()
 		GetCharacterMovement()->MaxFlySpeed = 600;
 		GetCharacterMovement()->BrakingDecelerationFlying = 0;
 
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetCapsuleComponent()->SetCapsuleHalfHeight(110);
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -107));
 
 		FRotator NewRotator = GetActorRotation();
 		NewRotator.Pitch = 0;
