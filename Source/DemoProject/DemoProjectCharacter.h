@@ -36,21 +36,27 @@ public:
 
 	void TickClimbEdge();
 
+	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
 	float BaseTurnRate;
 
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
 	float BaseLookUpRate;
 
 	/** Overwater character offset. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Swim)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Swim)
 	float OverwaterOffset = -25;
 
 	/** Underwater character offset. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Swim)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Swim)
 	float UnderwaterOffset = -100;
+
+	/** Level 1 Start Point. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Swim)
+	FVector Level1StartPoint = FVector(-4650, 0, -200);
 
 protected:
 
@@ -198,7 +204,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsClimbIK() const
 	{
-		return bIsClimbing && !bIsClimbingEdge && GetVelocity().Size() < 100;
+		/*return bIsClimbing && !bIsClimbingEdge && GetVelocity().Size() < 100;*/
+		return bIsClimbing && !bIsClimbingEdge;
 	}
 
 private:

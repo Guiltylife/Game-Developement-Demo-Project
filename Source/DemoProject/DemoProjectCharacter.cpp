@@ -98,15 +98,6 @@ void ADemoProjectCharacter::TickSwim()
 				GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Walking;
 			}
 		}
-
-		if (GetVelocity().Size() > 10)
-		{
-			GetCapsuleComponent()->SetCapsuleRadius(120);
-		}
-		else
-		{
-			GetCapsuleComponent()->SetCapsuleRadius(38);
-		}
 	}
 }
 
@@ -170,6 +161,11 @@ void ADemoProjectCharacter::TickClimbEdge()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	ClimbEdgeTimeLine.PlayFromStart();
+}
+
+void ADemoProjectCharacter::FellOutOfWorld(const class UDamageType& dmgType)
+{
+	SetActorLocation(Level1StartPoint);
 }
 
 /** Move character to over water */
@@ -317,7 +313,6 @@ void ADemoProjectCharacter::MoveForward(float Value)
 				if (!bIsRunning) Value /= 2;
 				AddMovementInput(Direction, Value);
 			}
-			
 		}
 		else if (MovementMode == MOVE_Flying && !bIsClimbing) // flying
 		{
