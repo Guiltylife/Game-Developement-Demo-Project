@@ -54,9 +54,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Swim)
 	float UnderwaterOffset = -100;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Level)
+	int LevelNumber;
+
 	/** Level 1 Start Point. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Swim)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Level)
 	FVector Level1StartPoint = FVector(-4650, 0, -200);
+
+	/** Level 2 Start Point. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Level)
+	FVector Level2StartPoint = FVector(0, 0, 260);
 
 protected:
 

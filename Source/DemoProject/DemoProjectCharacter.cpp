@@ -165,7 +165,12 @@ void ADemoProjectCharacter::TickClimbEdge()
 
 void ADemoProjectCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
-	SetActorLocation(Level1StartPoint);
+	if (LevelNumber == 1) SetActorLocation(Level1StartPoint);
+	else if (LevelNumber == 2) SetActorLocation(Level2StartPoint);
+	else SetActorLocation(FVector::ZeroVector);
+
+	SetActorRotation(FRotator::ZeroRotator);
+	GetController()->SetControlRotation(FRotator::ZeroRotator);
 }
 
 /** Move character to over water */
