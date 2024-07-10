@@ -9,6 +9,10 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "GameFramework/PhysicsVolume.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ADemoProjectCharacter
 

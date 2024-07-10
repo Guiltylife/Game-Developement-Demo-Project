@@ -5,9 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PhysicsVolume.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Components/TimeLineComponent.h"
 #include "DemoProjectCharacter.generated.h"
 
