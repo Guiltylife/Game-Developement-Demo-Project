@@ -7,15 +7,11 @@
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
-UInventoryComponent::UInventoryComponent(int InSize)
+UInventoryComponent::UInventoryComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	Size = InSize;
-	Items.Init(EmptyItem, Size);
-	for (int i = 0; i < Size; i++) IdToIndex[0].Add(i);
 }
 
 
@@ -23,6 +19,10 @@ UInventoryComponent::UInventoryComponent(int InSize)
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Items.Init(EmptyItem, Size);
+	IdToIndex.Add(0, TSet<int>());
+	for (int i = 0; i < Size; i++) IdToIndex[0].Add(i);
 }
 
 
@@ -59,7 +59,11 @@ bool UInventoryComponent::AddItem(FInventoryItem InItem)
 		int Index = *IdToIndex[EmptyItem.Id].begin();
 		IdToIndex[EmptyItem.Id].Remove(Index);
 		if (IdToIndex[EmptyItem.Id].Num() == 0) IdToIndex.Remove(EmptyItem.Id);
+
 		Items[Index] = InItem;
+		if (!IdToIndex.Contains(InItem.Id)) IdToIndex.Add(InItem.Id, TSet<int>());
+		IdToIndex[InItem.Id].Add(Index);
+
 		return true;
 	}
 	else return false;
@@ -70,31 +74,31 @@ void UInventoryComponent::RemoveItem(int Index, int Number)
 	if (Number <= 0) return;
 	if (Items[Index].Id == EmptyItem.Id) return;
 
+	if (Number > Items[Index].Number) Number = Items[Index].Number;
 	Items[Index].Number -= Number;
-	if (Items[Index].Number <= 0) Items[Index] = EmptyItem;
+	if (Items[Index].Number == 0) {
+		IdToIndex[Items[Index].Id].Remove(Index);
+		if (IdToIndex[Items[Index].Id].Num() == 0) IdToIndex.Remove(Items[Index].Id);
+		Items[Index] = EmptyItem;
+		if (!IdToIndex.Contains(0)) IdToIndex.Add(0, TSet<int>());
+		IdToIndex[0].Add(Index);
+	}
 }
 
 void UInventoryComponent::SwapItem(int Index1, int Index2)
 {
+	FInventoryItem Item1 = GetItem(Index1);
+	FInventoryItem Item2 = GetItem(Index2);
+
+	IdToIndex[Item1.Id].Remove(Index1);
+	IdToIndex[Item2.Id].Remove(Index2);
+	IdToIndex[Item1.Id].Add(Index2);
+	IdToIndex[Item2.Id].Add(Index1);
+
 	Swap(Items[Index1], Items[Index2]);
 }
 
-void UInventoryComponent::AddCurrentItem(APickUpBase* InItem)
+FInventoryItem UInventoryComponent::GetItem(int Index)
 {
-	CurrentItems.Add(InItem);
-}
-
-void UInventoryComponent::RemoveCurrentItem(APickUpBase* InItem)
-{
-	CurrentItems.Remove(InItem);
-}
-
-void UInventoryComponent::PickItem()
-{
-	if (CurrentItems.Num() > 0)
-	{
-		APickUpBase* Item = CurrentItems.Pop();
-		AddItem(Item->Item);
-		Item->Destroy();
-	}
+	return Items[Index];
 }

@@ -44,6 +44,8 @@ public:
 	// Sets default values for this actor's properties
 	APickUpBase();
 
+	APickUpBase(FInventoryItem InItem);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -53,6 +55,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UFUNCTION(BlueprintCallable)
+	FInventoryItem GetItem() const
+	{
+		return Item;
+	}
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnTrigger", Meta = (ExposeOnSpawn = true))
 	FInventoryItem Item;
 };

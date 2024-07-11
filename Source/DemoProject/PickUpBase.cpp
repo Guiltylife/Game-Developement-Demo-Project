@@ -11,6 +11,11 @@ APickUpBase::APickUpBase()
 
 }
 
+APickUpBase::APickUpBase(FInventoryItem InItem)
+{
+	Item = InItem;
+}
+
 // Called when the game starts or when spawned
 void APickUpBase::BeginPlay()
 {

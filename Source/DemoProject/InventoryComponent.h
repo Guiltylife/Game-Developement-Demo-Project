@@ -14,9 +14,7 @@ class DEMOPROJECT_API UInventoryComponent : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
-	UInventoryComponent() { }
-
-	UInventoryComponent(int InSize);
+	UInventoryComponent();
 
 protected:
 	// Called when the game starts
@@ -36,24 +34,17 @@ public:
 	void SwapItem(int Index1, int Index2);
 
 	UFUNCTION(BlueprintCallable)
-	void AddCurrentItem(APickUpBase* InItem);
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveCurrentItem(APickUpBase* InItem);
-
-	UFUNCTION(BlueprintCallable)
-	void PickItem();
+	FInventoryItem GetItem(int Index);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FInventoryItem EmptyItem;
 
-private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Size;
 
+private:
 	TArray<FInventoryItem> Items;
 
 	TMap<int, TSet<int>> IdToIndex;
-
-	TArray<APickUpBase*> CurrentItems;
 };
