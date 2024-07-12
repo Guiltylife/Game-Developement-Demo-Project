@@ -259,8 +259,6 @@ void ADemoProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &ADemoProjectCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &ADemoProjectCharacter::TouchStopped);
 
-	PlayerInputComponent->BindAction("Fly", IE_Pressed, this, &ADemoProjectCharacter::Fly);
-
 	PlayerInputComponent->BindAction("Dive", IE_Pressed, this, &ADemoProjectCharacter::Dive);
 
 	PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &ADemoProjectCharacter::Climb);
