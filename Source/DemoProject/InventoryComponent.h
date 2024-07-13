@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include"Engine/Datatable.h"
 #include "PickUpBase.h"
 #include "InventoryComponent.generated.h"
 
@@ -25,26 +26,29 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool AddItem(FInventoryItem InItem);
+	void AddItem(FInventoryItem InItem);
 
 	UFUNCTION(BlueprintCallable)
-	void RemoveItem(int Index, int Number);
+	void RemoveItem(int type, int Index, int Number);
 
 	UFUNCTION(BlueprintCallable)
-	void SwapItem(int Index1, int Index2);
+	void SwapItem(int type, int Index1, int Index2);
 
 	UFUNCTION(BlueprintCallable)
-	FInventoryItem GetItem(int Index);
+	FInventoryItem GetItem(int type, int Index);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FInventoryItem EmptyItem;
+	UDataTable* ItemTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Size;
+	int InventoryNumber;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int InventorySize;
 
 private:
-	TArray<FInventoryItem> Items;
+	FInventoryItem EmptyInventoryItem;
 
-	TMap<int, TSet<int>> IdToIndex;
+	TArray<TArray<FInventoryItem>> Inventories;
 };

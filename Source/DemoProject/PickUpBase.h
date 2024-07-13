@@ -4,14 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "PickUpBase.generated.h"
 
 USTRUCT(BlueprintType)
-struct FInventoryItem {
+struct FItem : public FTableRowBase
+{
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Type;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
@@ -23,16 +28,22 @@ struct FInventoryItem {
 	int MaxStackingNumber;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Number;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText Description;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMesh* Mesh;
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItem
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FItem ItemInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Number;
 };
 
 UCLASS()
@@ -53,13 +64,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-public:
-	UFUNCTION(BlueprintCallable)
-	FInventoryItem GetItem() const
-	{
-		return Item;
-	}
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnTrigger", Meta = (ExposeOnSpawn = true))

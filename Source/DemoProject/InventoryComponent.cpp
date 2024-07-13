@@ -20,9 +20,10 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Items.Init(EmptyItem, Size);
-	IdToIndex.Add(0, TSet<int>());
-	for (int i = 0; i < Size; i++) IdToIndex[0].Add(i);
+	for (int i = 0; i < InventoryNumber; i++) {
+		Inventories.Add(TArray<FInventoryItem>());
+		Inventories[i].Init(EmptyInventoryItem, InventorySize);
+	}
 }
 
 
@@ -32,73 +33,66 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-bool UInventoryComponent::AddItem(FInventoryItem InItem)
+void UInventoryComponent::AddItem(FInventoryItem InItem)
 {
-	if (IdToIndex.Contains(InItem.Id))
+	int type = InItem.ItemInfo.Type;
+	if (type > Inventories.Num()) return;
+	TArray<FInventoryItem>& Items = Inventories[type - 1];
+
+	if (InItem.ItemInfo.CanStacking)
 	{
-		for (int Index : IdToIndex[InItem.Id])
+		for (int i = 0; i < InventorySize; i++)
 		{
-			if (Items[Index].Number < Items[Index].MaxStackingNumber)
+			if (Items[i].ItemInfo.Id == InItem.ItemInfo.Id)
 			{
-				if (Items[Index].Number + InItem.Number <= Items[Index].MaxStackingNumber)
+				if (Items[i].Number + InItem.Number <= Items[i].ItemInfo.MaxStackingNumber)
 				{
-					Items[Index].Number += InItem.Number;
-					return true;
+					Items[i].Number += InItem.Number;
+					return;
 				}
 				else
 				{
-					InItem.Number -= Items[Index].MaxStackingNumber - Items[Index].Number;
-					Items[Index].Number = Items[Index].MaxStackingNumber;
+					InItem.Number -= Items[i].ItemInfo.MaxStackingNumber - Items[i].Number;
+					Items[i].Number = Items[i].ItemInfo.MaxStackingNumber;
 				}
 			}
 		}
 	}
 
-	if (IdToIndex.Contains(EmptyItem.Id) && IdToIndex[EmptyItem.Id].Num() > 0)
+	for (int i = 0; i < InventorySize; i++)
 	{
-		int Index = *IdToIndex[EmptyItem.Id].begin();
-		IdToIndex[EmptyItem.Id].Remove(Index);
-		if (IdToIndex[EmptyItem.Id].Num() == 0) IdToIndex.Remove(EmptyItem.Id);
-
-		Items[Index] = InItem;
-		if (!IdToIndex.Contains(InItem.Id)) IdToIndex.Add(InItem.Id, TSet<int>());
-		IdToIndex[InItem.Id].Add(Index);
-
-		return true;
+		if (Items[i].ItemInfo.Id == EmptyInventoryItem.ItemInfo.Id)
+		{
+			Items[i] = InItem;
+			return;
+		}
 	}
-	else return false;
 }
 
-void UInventoryComponent::RemoveItem(int Index, int Number)
+void UInventoryComponent::RemoveItem(int type, int Index, int Number)
 {
 	if (Number <= 0) return;
-	if (Items[Index].Id == EmptyItem.Id) return;
+	if (type > Inventories.Num()) return;
+	TArray<FInventoryItem>& Items = Inventories[type - 1];
+	if (Items[Index].ItemInfo.Id == EmptyInventoryItem.ItemInfo.Id) return;
 
 	if (Number > Items[Index].Number) Number = Items[Index].Number;
 	Items[Index].Number -= Number;
 	if (Items[Index].Number == 0) {
-		IdToIndex[Items[Index].Id].Remove(Index);
-		if (IdToIndex[Items[Index].Id].Num() == 0) IdToIndex.Remove(Items[Index].Id);
-		Items[Index] = EmptyItem;
-		if (!IdToIndex.Contains(0)) IdToIndex.Add(0, TSet<int>());
-		IdToIndex[0].Add(Index);
+		Items[Index] = EmptyInventoryItem;
 	}
 }
 
-void UInventoryComponent::SwapItem(int Index1, int Index2)
+void UInventoryComponent::SwapItem(int type, int Index1, int Index2)
 {
-	FInventoryItem Item1 = GetItem(Index1);
-	FInventoryItem Item2 = GetItem(Index2);
-
-	IdToIndex[Item1.Id].Remove(Index1);
-	IdToIndex[Item2.Id].Remove(Index2);
-	IdToIndex[Item1.Id].Add(Index2);
-	IdToIndex[Item2.Id].Add(Index1);
-
+	if (type > Inventories.Num()) return;
+	TArray<FInventoryItem>& Items = Inventories[type - 1];
 	Swap(Items[Index1], Items[Index2]);
 }
 
-FInventoryItem UInventoryComponent::GetItem(int Index)
+FInventoryItem UInventoryComponent::GetItem(int type, int Index)
 {
+	if (type > Inventories.Num()) return FInventoryItem();
+	TArray<FInventoryItem>& Items = Inventories[type - 1];
 	return Items[Index];
 }
