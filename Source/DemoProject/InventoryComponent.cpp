@@ -5,6 +5,7 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "DemoProjectCharacter.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -20,9 +21,19 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (int i = 0; i < InventoryNumber; i++) {
+	for (int i = 0; i < InventoryNumber; i++)
+	{
 		Inventories.Add(TArray<FInventoryItem>());
 		Inventories[i].Init(EmptyInventoryItem, InventorySize);
+	}
+
+	for (auto it : CraftFormulaTable->GetRowMap())
+	{
+		CraftFormulas.Add(*((FCraftFormula*)it.Value));
+	}
+	while (CraftFormulas.Num() < InventorySize)
+	{
+		CraftFormulas.Add(FCraftFormula());
 	}
 }
 
@@ -35,9 +46,9 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UInventoryComponent::AddItem(FInventoryItem InItem)
 {
-	int type = InItem.ItemInfo.Type;
-	if (type > Inventories.Num()) return;
-	TArray<FInventoryItem>& Items = Inventories[type - 1];
+	int Type = InItem.ItemInfo.Type;
+	if (Type > Inventories.Num()) return;
+	TArray<FInventoryItem>& Items = Inventories[Type - 1];
 
 	if (InItem.ItemInfo.CanStacking)
 	{
@@ -45,15 +56,15 @@ void UInventoryComponent::AddItem(FInventoryItem InItem)
 		{
 			if (Items[i].ItemInfo.Id == InItem.ItemInfo.Id)
 			{
-				if (Items[i].Number + InItem.Number <= Items[i].ItemInfo.MaxStackingNumber)
+				if (Items[i].ItemNumber + InItem.ItemNumber <= Items[i].ItemInfo.MaxStackingNumber)
 				{
-					Items[i].Number += InItem.Number;
+					Items[i].ItemNumber += InItem.ItemNumber;
 					return;
 				}
 				else
 				{
-					InItem.Number -= Items[i].ItemInfo.MaxStackingNumber - Items[i].Number;
-					Items[i].Number = Items[i].ItemInfo.MaxStackingNumber;
+					InItem.ItemNumber -= Items[i].ItemInfo.MaxStackingNumber - Items[i].ItemNumber;
+					Items[i].ItemNumber = Items[i].ItemInfo.MaxStackingNumber;
 				}
 			}
 		}
@@ -69,30 +80,120 @@ void UInventoryComponent::AddItem(FInventoryItem InItem)
 	}
 }
 
-void UInventoryComponent::RemoveItem(int type, int Index, int Number)
+void UInventoryComponent::RemoveItem(int Type, int Index, int Number)
 {
 	if (Number <= 0) return;
-	if (type > Inventories.Num()) return;
-	TArray<FInventoryItem>& Items = Inventories[type - 1];
+	if (Type > Inventories.Num() || Type <= 0) return;
+	TArray<FInventoryItem>& Items = Inventories[Type - 1];
 	if (Items[Index].ItemInfo.Id == EmptyInventoryItem.ItemInfo.Id) return;
 
-	if (Number > Items[Index].Number) Number = Items[Index].Number;
-	Items[Index].Number -= Number;
-	if (Items[Index].Number == 0) {
+	if (Number > Items[Index].ItemNumber) Number = Items[Index].ItemNumber;
+	Items[Index].ItemNumber -= Number;
+	if (Items[Index].ItemNumber == 0) {
 		Items[Index] = EmptyInventoryItem;
 	}
 }
 
-void UInventoryComponent::SwapItem(int type, int Index1, int Index2)
+void UInventoryComponent::SwapItem(int Type, int Index1, int Index2)
 {
-	if (type > Inventories.Num()) return;
-	TArray<FInventoryItem>& Items = Inventories[type - 1];
+	if (Type > Inventories.Num() || Type <= 0) return;
+	TArray<FInventoryItem>& Items = Inventories[Type - 1];
 	Swap(Items[Index1], Items[Index2]);
 }
 
-FInventoryItem UInventoryComponent::GetItem(int type, int Index)
+FInventoryItem UInventoryComponent::GetItem(int Type, int Index)
 {
-	if (type > Inventories.Num()) return FInventoryItem();
-	TArray<FInventoryItem>& Items = Inventories[type - 1];
-	return Items[Index];
+	if (Type > Inventories.Num() || Type == 0) return FInventoryItem();
+
+	if (Type == -1)
+	{
+		int ItemId = CraftFormulas[Index].CompositeId;
+		if (ItemId == 0) return FInventoryItem();
+
+		FInventoryItem Item = FInventoryItem();
+		if (FInventoryItemInfo* ItemInfo = ItemInfoTable->FindRow<FInventoryItemInfo>(FName(FString::FromInt(ItemId)), TEXT("")))
+		{
+			Item.ItemInfo = *ItemInfo;
+			Item.ItemNumber = CraftFormulas[Index].CompositeNumber;
+		}
+		return Item;
+	}
+	else
+	{
+		return Inventories[Type - 1][Index];
+	}
+	
+}
+
+void UInventoryComponent::UseItem(int Type, int Index)
+{
+	if (Type == 2)
+	{
+		if (FItemEffect* ItemEffect = ItemEffectTable->FindRow<FItemEffect>(FName(FString::FromInt(Inventories[Type - 1][Index].ItemInfo.Id)), TEXT("")))
+		{
+			for (int Buff : ItemEffect->CharacterBuffs)
+			{
+				Cast<ADemoProjectCharacter>(GetOwner())->Buffs.Add(Buff);
+			}
+		}
+	}
+}
+
+bool UInventoryComponent::CanCombine(int CraftFormulaIndex)
+{
+	FCraftFormula CraftFormula = CraftFormulas[CraftFormulaIndex];
+	if (FInventoryItemInfo* CompositeInfo = ItemInfoTable->FindRow<FInventoryItemInfo>(FName(FString::FromInt(CraftFormula.CompositeId)), TEXT("")))
+	{
+		TArray<FInventoryItem>& Inventory = Inventories[CompositeInfo->Type - 1];
+		for (int i = 0; i < CraftFormula.IngrediantIds.Num(); i++)
+		{
+			int IngrediantNumber = 0;
+			for (int j = 0; j < Inventory.Num(); j++)
+			{
+				if (Inventory[j].ItemInfo.Id == CraftFormula.IngrediantIds[i]) IngrediantNumber += Inventory[j].ItemNumber;
+				if (IngrediantNumber >= CraftFormula.IngrediantNumbers[i]) break;
+			}
+			if (IngrediantNumber < CraftFormula.IngrediantNumbers[i]) return false;
+		}
+
+		return true;
+	}
+	else return false;
+}
+
+void UInventoryComponent::CombineItem(int CraftFormulaIndex)
+{
+	if (!CanCombine(CraftFormulaIndex)) return;
+
+	FCraftFormula CraftFormula = CraftFormulas[CraftFormulaIndex];
+	if (FInventoryItemInfo* CompositeInfo = ItemInfoTable->FindRow<FInventoryItemInfo>(FName(FString::FromInt(CraftFormula.CompositeId)), TEXT("")))
+	{
+		TArray<FInventoryItem>& Inventory = Inventories[CompositeInfo->Type - 1];
+		for (int i = 0; i < CraftFormula.IngrediantIds.Num(); i++)
+		{
+			int IngrediantNumber = CraftFormula.IngrediantNumbers[i];
+			for (int j = 0; j < Inventory.Num(); j++)
+			{
+				if (Inventory[j].ItemInfo.Id == CraftFormula.IngrediantIds[i])
+				{
+					if (Inventory[j].ItemNumber >= IngrediantNumber)
+					{
+						RemoveItem(CompositeInfo->Type, j, IngrediantNumber);
+						break;
+					}
+					else
+					{
+						IngrediantNumber -= Inventory[j].ItemNumber;
+						RemoveItem(CompositeInfo->Type, j, Inventory[j].ItemNumber);
+					}
+				}
+			}
+		}
+
+		FInventoryItem InventoryItem;
+		InventoryItem.ItemInfo = *CompositeInfo;
+		InventoryItem.ItemNumber = CraftFormula.CompositeNumber;
+		AddItem(InventoryItem);
+	}
+	
 }

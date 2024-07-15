@@ -51,6 +51,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Swim)
 	float UnderwaterOffset = -100;
 
+	/** Current Character Status. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Buff)
+	TSet<int> Buffs;
+
+	/** Current Level Number. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Level)
 	int LevelNumber;
 

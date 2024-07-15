@@ -8,19 +8,24 @@ APickUpBase::APickUpBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-APickUpBase::APickUpBase(FInventoryItem InItem)
+APickUpBase::APickUpBase(int InItemId, int InItemNumber)
 {
-	Item = InItem;
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	ItemId = InItemId;
+	ItemNumber = InItemNumber;
 }
 
 // Called when the game starts or when spawned
 void APickUpBase::BeginPlay()
 {
+	Item.ItemInfo = *ItemTable->FindRow<FInventoryItemInfo>(FName(FString::FromInt(ItemId)), TEXT(""));
+	Item.ItemNumber = ItemNumber;
+
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

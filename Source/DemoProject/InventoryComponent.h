@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include"Engine/Datatable.h"
 #include "PickUpBase.h"
 #include "InventoryComponent.generated.h"
 
@@ -29,26 +28,43 @@ public:
 	void AddItem(FInventoryItem InItem);
 
 	UFUNCTION(BlueprintCallable)
-	void RemoveItem(int type, int Index, int Number);
+	void RemoveItem(int Type, int Index, int Number);
 
 	UFUNCTION(BlueprintCallable)
-	void SwapItem(int type, int Index1, int Index2);
+	void SwapItem(int Type, int Index1, int Index2);
 
 	UFUNCTION(BlueprintCallable)
-	FInventoryItem GetItem(int type, int Index);
+	FInventoryItem GetItem(int Type, int Index);
+
+	UFUNCTION(BlueprintCallable)
+	void UseItem(int Type, int Index);
+
+	UFUNCTION(BlueprintCallable)
+	bool CanCombine(int CraftFormulaIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void CombineItem(int CraftFormulaIndex);
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UDataTable* ItemTable;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int InventoryNumber;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int InventorySize;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDataTable* ItemInfoTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDataTable* ItemEffectTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UDataTable* CraftFormulaTable;
+
 private:
 	FInventoryItem EmptyInventoryItem;
 
 	TArray<TArray<FInventoryItem>> Inventories;
+
+	TArray<FCraftFormula> CraftFormulas;
 };

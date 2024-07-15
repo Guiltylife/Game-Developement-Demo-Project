@@ -12,6 +12,7 @@
 #include "GameFramework/PhysicsVolume.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Framework/Application/NavigationConfig.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ADemoProjectCharacter
@@ -60,6 +61,8 @@ void ADemoProjectCharacter::BeginPlay()
 
 	OnClimbEdgeFinishCallback.BindUFunction(this, TEXT("ClimbEdgeFinishCallback"));
 	ClimbEdgeTimeLine.SetTimelineFinishedFunc(OnClimbEdgeFinishCallback);
+
+	FSlateApplication::Get().GetNavigationConfig().Get().bTabNavigation = false;
 }
 
 void ADemoProjectCharacter::Tick(float DeltaTime)

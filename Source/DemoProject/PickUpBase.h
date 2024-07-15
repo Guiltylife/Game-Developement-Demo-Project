@@ -8,7 +8,7 @@
 #include "PickUpBase.generated.h"
 
 USTRUCT(BlueprintType)
-struct FItem : public FTableRowBase
+struct FInventoryItemInfo : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -40,10 +40,46 @@ struct FInventoryItem
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FItem ItemInfo;
+	FInventoryItemInfo ItemInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Number;
+	int ItemNumber;
+};
+
+USTRUCT(BlueprintType)
+struct FCraftFormula : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<int> IngrediantIds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<int> IngrediantNumbers;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CompositeId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CompositeNumber;
+};
+
+USTRUCT(BlueprintType)
+struct FItemEffect : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int ItemId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSet<int> CharacterBuffs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CharacterHealthEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CharacterEnergyEffect;
 };
 
 UCLASS()
@@ -55,7 +91,7 @@ public:
 	// Sets default values for this actor's properties
 	APickUpBase();
 
-	APickUpBase(FInventoryItem InItem);
+	APickUpBase(int InItemId, int InItemNumber);
 
 protected:
 	// Called when the game starts or when spawned
@@ -66,6 +102,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnTrigger", Meta = (ExposeOnSpawn = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UDataTable* ItemTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpawnTrigger", Meta = (ExposeOnSpawn = true))
+	int ItemId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpawnTrigger", Meta = (ExposeOnSpawn = true))
+	int ItemNumber;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FInventoryItem Item;
 };
