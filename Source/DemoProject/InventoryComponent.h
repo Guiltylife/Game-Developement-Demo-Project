@@ -45,6 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CombineItem(int CraftFormulaIndex);
 
+	UFUNCTION(BlueprintCallable)
+	int HasItem(int Type, int ItemId);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int InventoryNumber;

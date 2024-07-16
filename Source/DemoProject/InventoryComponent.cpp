@@ -197,3 +197,14 @@ void UInventoryComponent::CombineItem(int CraftFormulaIndex)
 	}
 	
 }
+
+int UInventoryComponent::HasItem(int Type, int ItemId)
+{
+	if (Type < 1 || Type > Inventories.Num()) return -1;
+
+	for (int i = 0; i < InventorySize; i++)
+	{
+		if (Inventories[Type - 1][i].ItemInfo.Id == ItemId) return i;
+	}
+	return -1;
+}
