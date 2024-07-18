@@ -62,9 +62,9 @@
 
 ## 3.1 对话系统
 
-靠近NPC后会显示NPC的名字以及开始对话的提示。演示视频
+靠近NPC后会显示NPC的名字以及开始对话的提示。[演示视频](https://github.com/Guiltylife/Game-Developement-Demo-Project/blob/main/videos/对话系统提示UI.mp4)
 
-开始对话后，点击对话栏即可推进对话。支持对话分支，根据玩家选择进入不同分支。演示视频
+开始对话后，点击对话栏即可推进对话。支持对话分支，根据玩家选择进入不同分支。[演示视频](https://github.com/Guiltylife/Game-Developement-Demo-Project/blob/main/videos/对话系统对话.mp4)
 
 ## 3.2 过场动画
 
