@@ -115,7 +115,7 @@ void ADemoProjectCharacter::TickClimb()
 		FHitResult HitResult;
 		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(),
 			GetActorLocation() + GetActorForwardVector() * 90, 30,
-			ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+			ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, HitResult, true))
 		{
 			if (HitResult.Actor->Tags.Contains(FName("Landscape")))
 			{
@@ -134,7 +134,7 @@ void ADemoProjectCharacter::TickClimb()
 
 				if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation() + GetActorUpVector() * 130,
 					GetActorLocation() + GetActorUpVector() * 130 + GetActorForwardVector() * 90, 45,
-					ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+					ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, HitResult, true))
 				{
 					if (!HitResult.Actor->Tags.Contains(FName("Landscape"))) TickClimbEdge();
 				}
@@ -145,7 +145,7 @@ void ADemoProjectCharacter::TickClimb()
 
 				if (UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(),
 					GetActorLocation() - GetActorUpVector() * 112,
-					ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+					ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, HitResult, true))
 				{
 					Climb();
 				}
@@ -459,7 +459,7 @@ void ADemoProjectCharacter::Climb()
 
 	if (GetCharacterMovement()->MovementMode == MOVE_Walking && !bIsClimbing) {
 		FHitResult HitResult;
-		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForOneFrame, HitResult, true))
+		if (UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 90, 30, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, HitResult, true))
 		{
 			if (HitResult.Actor->ActorHasTag("Climbable")) {
 				GetCharacterMovement()->MovementMode = EMovementMode::MOVE_Flying;

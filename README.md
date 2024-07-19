@@ -68,7 +68,7 @@
 
 ## 3.2 过场动画
 
-
+进入关卡后，关卡动画会自动播放，为玩家展示关卡场景。[演示视频](https://github.com/Guiltylife/Game-Developement-Demo-Project/blob/main/videos/关卡动画序列.mp4)
 
 # 4 战斗
 
