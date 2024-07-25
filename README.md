@@ -72,3 +72,6 @@
 
 # 4 战斗
 
+NPC看到玩家后会寻路到玩家附近，接近到一定距离后开始攻击。[演示视频](https://github.com/Guiltylife/Game-Developement-Demo-Project/blob/main/videos/AI寻路攻击.mp4)
+
+玩家点击鼠标左键可以挥拳攻击NPC，对NPC造成伤害。[演示视频](https://github.com/Guiltylife/Game-Developement-Demo-Project/blob/main/videos/玩家攻击.mp4)

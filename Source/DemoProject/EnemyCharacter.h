@@ -26,4 +26,29 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+	UPROPERTY(EditAnywhere)
+	int Health;
+
+	UPROPERTY(EditAnywhere)
+	int MaxHealth;
+
+private:
+	UFUNCTION(BlueprintCallable)
+	void AddHealth(int Number);
+
+	UFUNCTION(BlueprintCallable)
+	void SubHealth(int Number);
+
+	UFUNCTION(BlueprintCallable)
+	void SetHealth(int Number);
+
+	UFUNCTION(BlueprintCallable)
+	int GetHealth();
+
+	UFUNCTION(BlueprintCallable)
+	int GetMaxHealth();
+
+	UFUNCTION(BlueprintCallable)
+	FString GetHealthString();
 };

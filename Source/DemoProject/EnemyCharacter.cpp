@@ -32,3 +32,40 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void AEnemyCharacter::AddHealth(int Number)
+{
+	Health += Number;
+	Health = FMath::Min(Health, MaxHealth);
+}
+
+void AEnemyCharacter::SubHealth(int Number)
+{
+	Health -= Number;
+	Health = FMath::Max(Health, 0);
+	if (Health == 0)
+	{
+		Destroy();
+	}
+}
+
+void AEnemyCharacter::SetHealth(int Number)
+{
+	Health = Number;
+	Health = FMath::Min(Health, MaxHealth);
+	Health = FMath::Max(Health, 0);
+}
+
+int AEnemyCharacter::GetHealth()
+{
+	return Health;
+}
+
+int AEnemyCharacter::GetMaxHealth()
+{
+	return MaxHealth;
+}
+
+FString AEnemyCharacter::GetHealthString()
+{
+	return FString::Printf(TEXT("%d / %d"), Health, MaxHealth);
+}

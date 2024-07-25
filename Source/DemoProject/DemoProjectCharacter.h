@@ -35,6 +35,10 @@ public:
 
 	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
+	/** True if receive user input */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	bool bRecieveUserInput = true;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
 	float BaseTurnRate;
@@ -54,6 +58,14 @@ public:
 	/** Current Character Status. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Buff)
 	TSet<int> Buffs;
+
+	/** Current Character Health. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Health)
+	int Health;
+
+	/** Character Max Health. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Health)
+	int MaxHealth;
 
 	/** Current Level Number. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Level)
@@ -213,14 +225,42 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsClimbIK() const
 	{
-		/*return bIsClimbing && !bIsClimbingEdge && GetVelocity().Size() < 100;*/
 		return bIsClimbing && !bIsClimbingEdge;
 	}
 
-private:
-	/** True if receive user input */
-	bool bRecieveUserInput = true;
+	UFUNCTION(BlueprintCallable)
+	void AddHealth(int Number)
+	{
+		Health += Number;
+		Health = FMath::Min(Health, MaxHealth);
+	}
 
+	UFUNCTION(BlueprintCallable)
+	void SubHealth(int Number)
+	{
+		Health -= Number;
+		Health = FMath::Max(Health, 0);
+
+		if (Health == 0) {
+			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("RestartLevel"));
+		}
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetHealth(int Number)
+	{
+		Health = Number;
+		Health = FMath::Min(Health, MaxHealth);
+		Health = FMath::Max(Health, 0);
+	}
+
+	UFUNCTION(BlueprintCallable)
+	FString GetHealthString()
+	{
+		return FString::Printf(TEXT("%d / %d"), Health, MaxHealth);
+	}
+
+private:
 	/** True if the character is running */
 	bool bIsRunning = false;
 
